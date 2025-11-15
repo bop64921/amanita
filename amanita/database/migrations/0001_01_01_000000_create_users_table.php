@@ -12,13 +12,21 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->id();
-            $table->string('name');
-            $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
-            $table->string('password');
-            $table->rememberToken();
-            $table->timestamps();
+           $table->id();                                      // id autoincremental (PK)
+
+$table->string('first_name');                      // nombre
+$table->string('last_name');                       // apellidos
+
+$table->string('email')->unique();                 // email único
+$table->timestamp('email_verified_at')->nullable();// fecha verificación email (opcional)
+
+$table->string('password');                        // hash de la contraseña
+
+$table->string('photo_path')->nullable();          // ruta a la foto de perfil (puede no existir)
+$table->timestamp('last_login_at')->nullable();    // último login (todavía no lo rellenamos, pero queda listo)
+
+$table->rememberToken();                           // token para "recuérdame" en login web
+$table->timestamps();  
         });
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
