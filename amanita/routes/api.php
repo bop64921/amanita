@@ -6,6 +6,9 @@ use App\Http\Controllers\Api\CircleController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login',    [AuthController::class, 'login']);
+// Recuperación de contraseña
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
 
 Route::get('/health', function () {
     return response('ok', 200)

@@ -7,6 +7,9 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
+use Illuminate\Auth\Events\PasswordReset;
 
 class AuthController extends Controller
 {
@@ -96,5 +99,63 @@ class AuthController extends Controller
         return response()->json([
             'message' => 'Sesión cerrada correctamente.',
         ]);
+    }
+
+    /**
+     * Envía el link para resetear la contraseña.
+     * El frontend recibirá un email con un token.
+     */
+    public function forgotPassword(Request $request)
+    {
+        $request->validate(['email' => 'required|email']);
+
+        // Usamos el broker de contraseñas de Laravel para enviar el link.
+        // Esto busca el usuario, genera un token, lo guarda en la tabla `password_reset_tokens`
+        // y envía una notificación (email) al usuario.
+        $status = Password::sendResetLink($request->only('email'));
+
+        if ($status !== Password::RESET_LINK_SENT) {
+            // Si el email no existe, Laravel devuelve 'passwords.user'.
+            // Lo traducimos a un error de validación para no revelar si el usuario existe.
+            throw ValidationException::withMessages([
+                'email' => [trans($status)],
+            ]);
+        }
+
+        // Si todo va bien, Laravel devuelve 'passwords.sent'.
+        return response()->json([
+            'message' => trans($status)
+        ]);
+    }
+
+    /**
+     * Resetea la contraseña del usuario usando el token recibido.
+     */
+    public function resetPassword(Request $request)
+    {
+        $validated = $request->validate([
+            'token'                 => ['required'],
+            'email'                 => ['required', 'email'],
+            'password'              => ['required', 'string', 'min:8', 'confirmed'],
+            'password_confirmation' => ['required'],
+        ]);
+
+        // Usamos el broker para validar el token y resetear la contraseña.
+        $status = Password::reset($validated, function ($user, $password) {
+            $user->forceFill([
+                'password' => Hash::make($password)
+            ])->setRememberToken(Str::random(60));
+
+            $user->save();
+
+            event(new PasswordReset($user));
+        });
+
+        if ($status !== Password::PASSWORD_RESET) {
+            // Error: token inválido o el email no coincide.
+            throw ValidationException::withMessages(['email' => [trans($status)]]);
+        }
+
+        return response()->json(['message' => trans($status)]);
     }
 }
