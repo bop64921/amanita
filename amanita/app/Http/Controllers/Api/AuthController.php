@@ -19,6 +19,15 @@ class AuthController extends Controller
      */
     public function register(Request $request)
     {
+        // 1. Comprobación manual: Si el email ya existe, devolvemos un error específico
+        // para que el frontend pueda sugerir "Iniciar Sesión" o "Recuperar Contraseña".
+        if ($request->has('email') && User::where('email', $request->email)->exists()) {
+            return response()->json([
+                'message' => 'Este correo ya está registrado. ¿Quieres iniciar sesión o recuperar tu contraseña?',
+                'code'    => 'EMAIL_EXISTS' // Código útil para que Flutter sepa qué popup mostrar
+            ], 409); // 409 Conflict
+        }
+
         $data = $request->validate([
             'first_name' => ['required', 'string', 'max:255'],
             'last_name'  => ['required', 'string', 'max:255'],

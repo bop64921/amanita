@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Auth\Notifications\ResetPassword;
 
 class User extends Authenticatable
 {
@@ -70,5 +71,17 @@ class User extends Authenticatable
     public function locations(): HasMany
     {
         return $this->hasMany(UserLocation::class);
+    }
+
+    /**
+     * Enviar la notificación de restablecimiento de contraseña.
+     * Sobrescribimos este método del trait CanResetPassword para tener control.
+     *
+     * @param  string  $token
+     * @return void
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new ResetPassword($token));
     }
 }
