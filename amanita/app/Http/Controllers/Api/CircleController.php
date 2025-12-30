@@ -21,6 +21,13 @@ class CircleController extends Controller
             ->withPivot(['role', 'joined_at', 'invited_by'])
             ->get();
 
+        // Añadir URL completa de la foto para el frontend
+        $circles->each(function ($circle) {
+            if ($circle->photo_path) {
+                $circle->photo_url = url('media/' . $circle->photo_path);
+            }
+        });
+
         return response()->json($circles);
     }
 
@@ -36,7 +43,7 @@ class CircleController extends Controller
             'name'        => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
             // 'photo' debe coincidir con el nombre del campo en ApiClient.dart
-            'photo'       => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:2048'],
+            'photo'       => ['nullable', 'image', 'mimes:jpeg,png,jpg', 'max:10240'],
         ]);
 
         $photoPath = null;
@@ -63,6 +70,11 @@ class CircleController extends Controller
             'joined_at'  => now(),
             'invited_by' => null,
         ]);
+
+        // Añadir URL completa para la respuesta inmediata
+        if ($circle->photo_path) {
+            $circle->photo_url = url('media/' . $circle->photo_path);
+        }
 
         // 5) Devolver el círculo recién creado (con la ruta de la foto)
         return response()->json($circle, 201);

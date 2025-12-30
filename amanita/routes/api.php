@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\CircleController;
+use App\Http\Controllers\Api\TaskController;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login',    [AuthController::class, 'login']);
@@ -22,4 +23,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/circles', [CircleController::class, 'index']);
     Route::post('/circles', [CircleController::class, 'store']);
 
+    // Rutas de Tareas
+    Route::get('/circles/{circle}/tasks', [TaskController::class, 'index']);  // Ver tareas de un círculo
+    Route::post('/circles/{circle}/tasks', [TaskController::class, 'store']); // Crear tarea en un círculo
+    Route::patch('/tasks/{task}', [TaskController::class, 'update']);         // Actualizar tarea (status)
 });
